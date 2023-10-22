@@ -1,23 +1,23 @@
 import matrizDesafio from './matriz.js';
 
 const direcoes = {
-    2: 'U',
-    4: 'L',
-    6: 'R',
-    8: 'D'
+    2: 'U', //cima
+    4: 'L', //esquerda
+    6: 'R', //direita
+    8: 'D'  //baixo
 };
 const posicoes_vizinhos = [1, 2, 3, 4, 6, 7, 8, 9];
 const inicio_relogio = performance.now();
 const qtdLarguraMatriz = matrizDesafio[0].length;
 const qtdAlturaMatriz = matrizDesafio.length;
-const matrizLayout = gerarMatrizLayout();
+const matrizLayout = gerarMatrizLayout(); // matriz com todos os vizinhos de cada posição
 
 let passos = [];
 let passos_campeao = [];
 let matrizes = [matrizDesafio];
 let numeroPassos = 0;
 let isDestino = false;
-let movimentacoes = getVetorCasaPeao();
+let movimentacoes = getVetorCasaPeao(); // posição inicial
 
 function getVetorCasaPeao() {
     let localizacao_peoes = [[]]
@@ -97,15 +97,17 @@ function getVizinhos(rowCasa, rowVetor, matriz) {
 function vizinhosLayout(vizinhos, rowCasa, rowVetor) {
     let vizinhosParaRemover = [];
 
+    // inicio coluna 0 remover diagonal cima esquerda, esquerda, diagonal baixo esquerda
     if (rowCasa === 0) {
         vizinhosParaRemover.push(1, 4, 7);
-    } else if (rowCasa === (qtdLarguraMatriz - 1)) {
+    } else if (rowCasa === (qtdLarguraMatriz - 1)) { // fim coluna 0 remover diagonal cima direita, direita, diagonal baixo direita
         vizinhosParaRemover.push(3, 6, 9);
     }
 
+    // inicio linha 0 remover diagonal cima esquerda, cima, diagonal cima direita
     if (rowVetor === 0) {
         vizinhosParaRemover.push(1, 2, 3);
-    } else if (rowVetor === (qtdAlturaMatriz - 1)) {
+    } else if (rowVetor === (qtdAlturaMatriz - 1)) { // fim linha 0 remover diagonal baixo esquerda, baixo, diagonal baixo direita
         vizinhosParaRemover.push(7, 8, 9);
     }
 
@@ -125,14 +127,17 @@ function gerarMatrizLayout() {
 }
 
 function regras(casa, qtdVizinhos) {
+    //posição iniciaç e final desconsidera
     if ([3, 4].includes(casa)) {
         return casa;
     }
 
+    //se a celula esta morta e tem 4 ou 5 vizinhos mortos então a celula fica morta
     if (casa === 1 && [4, 5].includes(qtdVizinhos)) {
         return 1;
     }
 
+    // se a celula esta viva e tem 2 ou 3 ou 4 vizinhos mortos então a celula vira morta
     if (casa === 0 && [2, 3, 4].includes(qtdVizinhos)) {
         return 1;
     }
@@ -149,7 +154,7 @@ function gerarNovaMatriz(matriz) {
     for (let rowVetor = 0; rowVetor < qtdAlturaMatriz; rowVetor++) {
         let novoVetor = [];
         for (let rowCasa = 0; rowCasa < qtdLarguraMatriz; rowCasa++) {
-            let qtdVizinhos = somaVizinhos(getVizinhos(rowCasa, rowVetor, matriz));
+            let qtdVizinhos = somaVizinhos(getVizinhos(rowCasa, rowVetor, matriz)); // obtem a quatidade de vizinhos mortos da posição
             novoVetor.push(regras(matriz[rowVetor][rowCasa], qtdVizinhos));
         }
         novaMatriz.push(novoVetor);
@@ -174,10 +179,12 @@ function calcularMatriz() {
 function calcularRota(matriz) {
     let localizacaoPeoes = movimentacoes[numeroPassos];
 
+    //itera em todas as movimentações de um passo e obtem todas as novas movimentações para essas movimentações ja existentes
     for (let i = 0; i < localizacaoPeoes.length; i++) {
         let localizacaoPeao = localizacaoPeoes[i];
         let vizinhos = getVizinhos(localizacaoPeao['rowCasa'], localizacaoPeao['rowVetor'], matriz);
-        let vizinhosLivres = vizinhos.filter(x => !x["isVizinho"] && [2, 4, 6, 8].includes(x["posicao"]));
+        // faz um filtro para obter somente os vizinhos que não estão mortos e que não são diagonais
+        let vizinhosLivres = vizinhos.filter(x => !x["isVizinho"] && [2, 4, 6, 8].includes(x["posicao"])); 
 
         movimentar(vizinhosLivres, localizacaoPeao, matriz);
     }
@@ -191,6 +198,7 @@ function gerarPassos() {
     for (let count = 0; count < movimentacaoReverso.length; count++) {
         let movimentacao = movimentacaoReverso[count];
 
+        // busca o caminho que contem o nó objetivo para a partir dele obter o caminho até o passo inicial
         if (count === 0) {
             movimentoAtual = movimentacao.filter(movimento => movimento.casaAtual === 4)[0];
             passos.push(movimentoAtual['passo']);
@@ -225,7 +233,7 @@ function movimentar(vizinhosLivres, localizacaoPeao, matriz) {
     }
 
     for (let vizinho of vizinhosLivres) {
-        let posicao = getPosicaoVizinho(vizinho.posicao, localizacaoPeao.rowCasa, localizacaoPeao.rowVetor);
+        let posicao = getPosicaoVizinho(vizinho.posicao, localizacaoPeao.rowCasa, localizacaoPeao.rowVetor); // obtem x e y  do vizinho
         let has_repetido = false;
 
         if (movimentacoes.length <= (numeroPassos + 1)) {
